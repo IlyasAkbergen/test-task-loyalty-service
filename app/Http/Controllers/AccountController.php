@@ -3,10 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\LoyaltyAccount;
+use App\Repositories\AccountRepository;
 use Illuminate\Http\Request;
 
 class AccountController extends Controller
 {
+    protected AccountRepository $repository;
+
+    public function __construct(AccountRepository $accountRepository)
+    {
+        $this->repository = $accountRepository;
+    }
+
     public function create(Request $request)
     {
         return LoyaltyAccount::create($request->all());
