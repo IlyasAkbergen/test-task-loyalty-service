@@ -2,40 +2,48 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    public function register(Request $request)
+    public function register(RegisterRequest $request): \Illuminate\Http\JsonResponse
     {
-        $data = $request->all();
         $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
+            'name' => $request->get('name'),
+            'email' => $request->get('email'),
+            'password' => Hash::make($request->get('password')),
         ]);
-        return response()->json(['user' => $user, 'token' => $user->createToken('apiToken')->plainTextToken], 201);
+        return response()->json([
+            'user' => $user,
+            'token' => $user->createToken('apiToken')->plainTextToken,
+        ], 201);
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request): \Illuminate\Http\JsonResponse
     {
-        $data = $request->all();
-        $user = User::where('email', $data['email'])->first();
+        $user = User::where('email', $request->get('email'))->first();
 
-        if ($user && Hash::check($data['password'], $user->password)) {
-            $token = $user->createToken('apiToken')->plainTextToken;
+        if ($user && Hash::check($request->get('password'), $user->password)) {
+            $token = $user->createToken($request->get('token_name', 'apiToken'))->plainTextToken;
         } else {
-            return response()->json(['message' => 'Bad credentials'], 401);
+            return response()->json([
+                'message' => __('Bad credentials'),
+            ], 401);
         }
 
-        return response()->json(['user' => $user, 'token' => $token], 201);
+        return response()->json([
+            'user' => $user,
+            'token' => $token,
+        ], 201);
     }
 
-    public function logout(Request $request)
+    public function logout(Request $request): \Illuminate\Http\JsonResponse
     {
         $request->user()->tokens()->delete();
-        return ['message' => 'Logged out'];
+        return response()->json([ 'message' => __('Logged out') ]);
     }
 }
