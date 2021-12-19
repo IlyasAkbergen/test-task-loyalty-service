@@ -8,9 +8,9 @@ interface AccountRepository
 {
     public function create(AccountDTO $dto): AccountDTO;
 
-    public function activate($type, $id);
+    public function activate(string $search_field, $search_value): bool;
 
-    public function deactivate($type, $id);
+    public function deactivate(string $search_field, $search_value): bool;
 
-    public function balance($type, $id);
+    public function balance(string $search_field, $search_value);
 }
