@@ -4,6 +4,8 @@ namespace App\Repositories\Eloquent;
 
 use App\DTO\AccountDTO;
 use App\Models\LoyaltyAccount;
+use App\Notifications\AccountActivated;
+use App\Notifications\AccountDeactivated;
 use App\Repositories\AccountRepository;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use InvalidArgumentException;
@@ -69,6 +71,9 @@ class AccountRepositoryEloquent implements AccountRepository
             $account->update([
                 'active' => $active
             ]);
+            $account->notify(
+                $active ? new AccountActivated() : new AccountDeactivated()
+            );
         }
     }
 

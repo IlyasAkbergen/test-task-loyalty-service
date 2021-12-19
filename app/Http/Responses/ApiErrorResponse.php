@@ -11,7 +11,7 @@ class ApiErrorResponse implements Responsable
 
     public function __construct(
         public string $message,
-        public int $code = Response::HTTP_PRECONDITION_FAILED
+        public $code = Response::HTTP_PRECONDITION_FAILED
     ) {}
 
     public function toResponse($request): \Illuminate\Http\JsonResponse|\Symfony\Component\HttpFoundation\Response
@@ -25,7 +25,7 @@ class ApiErrorResponse implements Responsable
             );
     }
 
-    #[Pure] public static function make(string $message, int $code = null): static
+    #[Pure] public static function make(string $message, $code = Response::HTTP_PRECONDITION_FAILED): static
     {
         return new static($message, $code);
     }
