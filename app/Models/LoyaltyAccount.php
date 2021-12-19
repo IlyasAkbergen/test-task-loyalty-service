@@ -21,6 +21,12 @@ class LoyaltyAccount extends Model
         'active',
     ];
 
+    protected $attributes = [
+        'email_notification' => true,
+        'phone_notification' => true,
+        'active' => true,
+    ];
+
     public function getBalance(): float
     {
         return LoyaltyPointsTransaction::where('canceled', '=', 0)->where('account_id', '=', $this->id)->sum('points_amount');

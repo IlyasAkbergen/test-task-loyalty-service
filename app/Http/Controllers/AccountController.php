@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\DTO\AccountDTO;
+use App\Http\Requests\Account\CreateRequest;
 use App\Models\LoyaltyAccount;
 use App\Repositories\AccountRepository;
-use Illuminate\Http\Request;
 
 class AccountController extends Controller
 {
@@ -15,9 +16,15 @@ class AccountController extends Controller
         $this->repository = $accountRepository;
     }
 
-    public function create(Request $request)
+    /**
+     * @throws \Spatie\DataTransferObject\Exceptions\UnknownProperties
+     */
+    public function create(CreateRequest $request): \Illuminate\Http\JsonResponse
     {
-        return LoyaltyAccount::create($request->all());
+        $dto = new AccountDTO($request->all());
+        return response()->json(
+            $this->repository->create($dto)->toArray()
+        );
     }
 
     public function activate($type, $id)

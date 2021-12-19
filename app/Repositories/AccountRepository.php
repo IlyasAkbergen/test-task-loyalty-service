@@ -2,9 +2,11 @@
 
 namespace App\Repositories;
 
+use App\DTO\AccountDTO;
+
 interface AccountRepository
 {
-    public function create(); // todo add dto
+    public function create(AccountDTO $dto): AccountDTO;
 
     public function activate($type, $id);
 
