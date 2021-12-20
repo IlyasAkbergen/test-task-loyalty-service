@@ -5,6 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * @property int $id
+ * @property bool $active
+ * @property string $email
+ * @property string $phone
+ * @property string $card
+*/
 class LoyaltyAccount extends Model
 {
     use Notifiable;
@@ -26,6 +33,7 @@ class LoyaltyAccount extends Model
         'active' => true,
     ];
 
+    // todo refactor using hasMany relationship
     public function getBalance(): float
     {
         return LoyaltyPointsTransaction

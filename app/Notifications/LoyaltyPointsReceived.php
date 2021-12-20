@@ -2,13 +2,14 @@
 
 namespace App\Notifications;
 
+use App\Mail\LoyaltyPointsReceivedMailable;
+use App\Models\LoyaltyPointsTransaction;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
-use App\Mail\AccountActivatedMailable;
 
-class AccountActivated extends Notification implements ShouldQueue
+class LoyaltyPointsReceived extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -17,10 +18,7 @@ class AccountActivated extends Notification implements ShouldQueue
      *
      * @return void
      */
-    public function __construct()
-    {
-        //
-    }
+    public function __construct(private LoyaltyPointsTransaction $transaction) {}
 
     /**
      * Get the notification's delivery channels.
@@ -49,26 +47,13 @@ class AccountActivated extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        return (new AccountActivatedMailable($notifiable->getBalance()))
+        return (new LoyaltyPointsReceivedMailable($this->transaction->points_amount, $notifiable->getBalance()))
             ->to($notifiable->email);
     }
 
     public function toSms($notifiable)
     {
         // instead SMS component
-        Log::info('Account: phone: ' . $notifiable->phone . ' ' . ($notifiable->active ? 'Activated' : 'Deactivated'));
-    }
-
-    /**
-     * Get the array representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return array
-     */
-    public function toArray($notifiable)
-    {
-        return [
-            //
-        ];
+        Log::info(("\n\tYou received: " . $this->transaction->points_amount . "\n\tYour balance: " . $notifiable->getBalance()));
     }
 }

@@ -56,9 +56,7 @@ class AccountDeactivated extends Notification implements ShouldQueue
     public function toSms($notifiable)
     {
         // instead SMS component
-        if ($notifiable->phone) {
-            Log::info('Account: phone: ' . $notifiable->phone . ' ' . ($notifiable->active ? 'Activated' : 'Deactivated'));
-        }
+        Log::info('Account: phone: ' . $notifiable->phone . ' ' . ($notifiable->active ? 'Activated' : 'Deactivated'));
     }
 
     /**

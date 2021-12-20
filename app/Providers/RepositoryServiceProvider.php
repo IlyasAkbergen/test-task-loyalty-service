@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Repositories\AccountRepository;
 use App\Repositories\Eloquent\AccountRepositoryEloquent;
+use App\Repositories\Eloquent\LoyaltyPointsRepositoryEloquent;
+use App\Repositories\LoyaltyPointsRepository;
 use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider
@@ -18,6 +20,11 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(
             AccountRepository::class,
             AccountRepositoryEloquent::class
+        );
+
+        $this->app->bind(
+            LoyaltyPointsRepository::class,
+            LoyaltyPointsRepositoryEloquent::class
         );
     }
 

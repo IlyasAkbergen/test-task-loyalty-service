@@ -2,46 +2,45 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\LoyaltyPointsReceived;
+use App\DTO\LoyaltyPointsTransactionDTO;
+use App\Exceptions\AccountIsNotActiveException;
+use App\Http\Requests\LoyaltyPoints\DepositRequest;
+use App\Http\Resources\TransactionResource;
+use App\Http\Responses\ApiErrorResponse;
 use App\Models\LoyaltyAccount;
 use App\Models\LoyaltyPointsTransaction;
+use App\Repositories\AccountRepository;
+use App\Repositories\LoyaltyPointsRepository;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class LoyaltyPointsController extends Controller
 {
-    public function deposit()
+    public function __construct(
+        protected LoyaltyPointsRepository $repository,
+        protected AccountRepository $accountRepository
+    ) {}
+
+    public function deposit(DepositRequest $request)
     {
-        $data = $_POST;
+        $id   = $request->get('account_id');
+        $type = $request->get('account_type');
 
-        Log::info('Deposit transaction input: ' . print_r($data, true));
-
-        $type = $data['account_type'];
-        $id = $data['account_id'];
-        if (($type == 'phone' || $type == 'card' || $type == 'email') && $id != '') {
-            if ($account = LoyaltyAccount::where($type, '=', $id)->first()) {
-                if ($account->active) {
-                    $transaction =  LoyaltyPointsTransaction::performPaymentLoyaltyPoints($account->id, $data['loyalty_points_rule'], $data['description'], $data['payment_id'], $data['payment_amount'], $data['payment_time']);
-                    Log::info($transaction);
-                    if ($account->email != '' && $account->email_notification) {
-                        Mail::to($account)->send(new LoyaltyPointsReceived($transaction->points_amount, $account->getBalance()));
-                    }
-                    if ($account->phone != '' && $account->phone_notification) {
-                        // instead SMS component
-                        Log::info('You received' . $transaction->points_amount . 'Your balance' . $account->getBalance());
-                    }
-                    return $transaction;
-                } else {
-                    Log::info('Account is not active');
-                    return response()->json(['message' => 'Account is not active'], 400);
-                }
+        try {
+            $account = $this->accountRepository->findWhereOrFail($type, $id);
+            if ($account->active) {
+                $transaction = $this->repository->deposit(
+                    new LoyaltyPointsTransactionDTO($request->all()),
+                    $account
+                );
+                return TransactionResource::make($transaction);
             } else {
-                Log::info('Account is not found');
-                return response()->json(['message' => 'Account is not found'], 400);
+                throw new AccountIsNotActiveException();
             }
-        } else {
-            Log::info('Wrong account parameters');
-            throw new \InvalidArgumentException('Wrong account parameters');
+        } catch (\InvalidArgumentException|ModelNotFoundException|AccountIsNotActiveException $e) {
+            return ApiErrorResponse::make($e->getMessage());
+        } catch (\Exception $e) {
+            return ApiErrorResponse::make(__('Server error'));
         }
     }
 

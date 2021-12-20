@@ -6,7 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class LoyaltyPointsReceived extends Mailable
+class LoyaltyPointsReceivedMailable extends Mailable
 {
     use Queueable, SerializesModels;
 
