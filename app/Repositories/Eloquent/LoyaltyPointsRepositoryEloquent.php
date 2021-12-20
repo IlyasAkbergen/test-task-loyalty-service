@@ -8,6 +8,7 @@ use App\Models\LoyaltyPointsRule;
 use App\Models\LoyaltyPointsTransaction;
 use App\Notifications\LoyaltyPointsReceived;
 use App\Repositories\LoyaltyPointsRepository;
+use Illuminate\Support\Facades\Auth;
 
 class LoyaltyPointsRepositoryEloquent implements LoyaltyPointsRepository
 {
@@ -18,8 +19,9 @@ class LoyaltyPointsRepositoryEloquent implements LoyaltyPointsRepository
 
         $transaction = LoyaltyPointsTransaction::create(
             array_merge($dto->toArray(), [
+                'user_id'       => Auth::id(),
                 'account_id'    => $account->id,
-                'points_amount' => $points_amount
+                'points_amount' => $points_amount,
             ])
         );
 
@@ -28,9 +30,14 @@ class LoyaltyPointsRepositoryEloquent implements LoyaltyPointsRepository
         return $transaction;
     }
 
-    public function cancel()
+    public function cancel(int $transaction_id, string $reason = null)
     {
-        // TODO: Implement cancel() method.
+        return LoyaltyPointsTransaction
+            ::whereKey($transaction_id)
+            ->update([
+                'canceled' => true,
+                'cancellation_reason' => $reason,
+            ]);
     }
 
     public function withdraw()

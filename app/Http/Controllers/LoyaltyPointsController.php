@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\DTO\LoyaltyPointsTransactionDTO;
 use App\Exceptions\AccountIsNotActiveException;
+use App\Http\Requests\LoyaltyPoints\CancelRequest;
 use App\Http\Requests\LoyaltyPoints\DepositRequest;
 use App\Http\Resources\TransactionResource;
 use App\Http\Responses\ApiErrorResponse;
+use App\Http\Responses\ApiSuccessResponse;
 use App\Models\LoyaltyAccount;
 use App\Models\LoyaltyPointsTransaction;
 use App\Repositories\AccountRepository;
@@ -39,27 +41,21 @@ class LoyaltyPointsController extends Controller
             }
         } catch (\InvalidArgumentException|ModelNotFoundException|AccountIsNotActiveException $e) {
             return ApiErrorResponse::make($e->getMessage());
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return ApiErrorResponse::make(__('Server error'));
         }
     }
 
-    public function cancel()
+    public function cancel(CancelRequest $request)
     {
-        $data = $_POST;
-
-        $reason = $data['cancellation_reason'];
-
-        if ($reason == '') {
-            return response()->json(['message' => 'Cancellation reason is not specified'], 400);
-        }
-
-        if ($transaction = LoyaltyPointsTransaction::where('id', '=', $data['transaction_id'])->where('canceled', '=', 0)->first()) {
-            $transaction->canceled = time();
-            $transaction->cancellation_reason = $reason;
-            $transaction->save();
-        } else {
-            return response()->json(['message' => 'Transaction is not found'], 400);
+        try {
+            $this->repository->cancel(
+                $request->get('transaction_id'),
+                $request->get('cancellation_reason')
+            );
+            return ApiSuccessResponse::make();
+        } catch (\Exception) {
+            return ApiErrorResponse::make(__('Server error'));
         }
     }
 
