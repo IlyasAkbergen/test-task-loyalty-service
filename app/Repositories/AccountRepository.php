@@ -4,7 +4,7 @@ namespace App\Repositories;
 
 use App\DTO\AccountDTO;
 
-interface AccountRepository
+interface AccountRepository extends BaseRepository
 {
     public function create(AccountDTO $dto): AccountDTO;
 

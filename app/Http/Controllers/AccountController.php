@@ -55,7 +55,7 @@ class AccountController extends Controller
         return ApiSuccessResponse::make();
     }
 
-    public function balance($search_field, $search_value): ApiSuccessResponse|ApiErrorResponse
+    public function balance($search_field, $search_value): \Illuminate\Http\JsonResponse|ApiErrorResponse
     {
         try {
             $balance = $this->repository->balance($search_field, $search_value);
@@ -65,6 +65,6 @@ class AccountController extends Controller
             return ApiErrorResponse::make(__('Server error'));
         }
 
-        return ApiSuccessResponse::make([ 'balance' => round($balance, 2) ]);
+        return response()->json([ 'balance' => round($balance, 2) ]);
     }
 }

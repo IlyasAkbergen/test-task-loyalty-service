@@ -11,11 +11,15 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use InvalidArgumentException;
 use Spatie\DataTransferObject\Exceptions\UnknownProperties;
 
-class AccountRepositoryEloquent implements AccountRepository
+class AccountRepositoryEloquentEloquent extends BaseRepositoryEloquent implements AccountRepository
 {
+    public function __construct(LoyaltyAccount $model) {
+        $this->model = $model;
+    }
+
     public function findWhereOrFail($field, $value, $operator = '='): LoyaltyAccount
     {
-        $model = LoyaltyAccount::where($field, $operator, $value)->first();
+        $model = $this->model->where($field, $operator, $value)->first();
         if (!$model) {
             throw new ModelNotFoundException(__('Account is not found'));
         }
@@ -27,7 +31,7 @@ class AccountRepositoryEloquent implements AccountRepository
      */
     public function create(AccountDTO $dto): AccountDTO
     {
-        $model = LoyaltyAccount::create(
+        $model = $this->model->create(
             $dto->only(
                 'phone',
                 'card',

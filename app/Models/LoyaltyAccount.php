@@ -33,12 +33,16 @@ class LoyaltyAccount extends Model
         'active' => true,
     ];
 
-    // todo refactor using hasMany relationship
+    public function transactions()
+    {
+        return $this->hasMany(LoyaltyPointsTransaction::class, 'account_id', 'id');
+    }
+
     public function getBalance(): float
     {
-        return LoyaltyPointsTransaction
-            ::where('canceled', 0)
-            ->where('account_id', $this->id)
+        $this->loadMissing('transactions');
+        return data_get($this, 'transactions', collect())
+            ->where('canceled', 0)
             ->sum('points_amount');
     }
 }

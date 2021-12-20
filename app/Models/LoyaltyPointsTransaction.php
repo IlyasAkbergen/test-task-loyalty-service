@@ -21,13 +21,4 @@ class LoyaltyPointsTransaction extends Model
         'payment_amount',
         'payment_time',
     ];
-
-    public static function withdrawLoyaltyPoints($account_id, $points_amount, $description) {
-        return LoyaltyPointsTransaction::create([
-            'account_id' => $account_id,
-            'points_rule' => 'withdraw',
-            'points_amount' => -$points_amount,
-            'description' => $description,
-        ]);
-    }
 }

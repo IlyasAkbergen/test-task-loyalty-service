@@ -13,18 +13,20 @@ class LoyaltyPointsTransactionDTO extends DataTransferObject
 
     #[MapFrom('loyalty_points_rule_id')]
     #[MapTo('points_rule')]
-    public int $loyalty_points_rule_id;
+    public ?int $loyalty_points_rule_id;
 
     #[MapFrom('description')]
-    public string $description;
+    public ?string $description;
 
     #[MapFrom('payment_id')]
-    public string $payment_id;
+    public ?string $payment_id;
 
     #[MapFrom('payment_amount')]
-    public float $payment_amount;
+    public ?float $payment_amount;
 
     #[MapFrom('payment_time')]
-    public int $payment_time;
+    public ?int $payment_time;
 
+    #[MapFrom('points_amount')]
+    public ?float $points_amount;
 }

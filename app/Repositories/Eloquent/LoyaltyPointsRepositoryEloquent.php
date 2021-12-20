@@ -3,6 +3,8 @@
 namespace App\Repositories\Eloquent;
 
 use App\DTO\LoyaltyPointsTransactionDTO;
+use App\Exceptions\AccountIsNotActiveException;
+use App\Exceptions\InsufficientFundsException;
 use App\Models\LoyaltyAccount;
 use App\Models\LoyaltyPointsRule;
 use App\Models\LoyaltyPointsTransaction;
@@ -14,6 +16,9 @@ class LoyaltyPointsRepositoryEloquent implements LoyaltyPointsRepository
 {
     public function deposit(LoyaltyPointsTransactionDTO $dto, LoyaltyAccount $account)
     {
+        if (!$account->active) {
+            throw new AccountIsNotActiveException();
+        }
         $pointsRule = LoyaltyPointsRule::findOrFail($dto->loyalty_points_rule_id);
         $points_amount = $this->calculatePoints($pointsRule, $dto->payment_amount);
 
@@ -40,9 +45,22 @@ class LoyaltyPointsRepositoryEloquent implements LoyaltyPointsRepository
             ]);
     }
 
-    public function withdraw()
+    public function withdraw(LoyaltyPointsTransactionDTO $dto, LoyaltyAccount $account)
     {
-        // TODO: Implement withdraw() method.
+        if (!$account->active) {
+            throw new AccountIsNotActiveException();
+        }
+        if ($account->getBalance() < $dto->points_amount) {
+            throw new InsufficientFundsException('Insufficient funds', 400);
+        }
+        return LoyaltyPointsTransaction::create(
+            array_merge($dto->toArray(), [
+                'user_id'       => Auth::id(),
+                'account_id'    => $account->id,
+                'points_amount' => -$dto->points_amount,
+                'points_rule' => 'withdraw'
+            ])
+        );
     }
 
     private function calculatePoints($pointsRule, float $payment_amount): float
