@@ -2,65 +2,69 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\LoyaltyAccount;
-use Illuminate\Http\Request;
+use App\DTO\AccountDTO;
+use App\Http\Requests\Account\CreateRequest;
+use App\Http\Responses\ApiErrorResponse;
+use App\Http\Responses\ApiSuccessResponse;
+use App\Repositories\AccountRepository;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class AccountController extends Controller
 {
-    public function create(Request $request)
+    protected AccountRepository $repository;
+
+    public function __construct(AccountRepository $accountRepository)
     {
-        return LoyaltyAccount::create($request->all());
+        $this->repository = $accountRepository;
     }
 
-    public function activate($type, $id)
+    /**
+     * @throws \Spatie\DataTransferObject\Exceptions\UnknownProperties
+     */
+    public function create(CreateRequest $request): \Illuminate\Http\JsonResponse
     {
-        if (($type == 'phone' || $type == 'card' || $type == 'email') && $id != '') {
-            if ($account = LoyaltyAccount::where($type, '=', $id)->first()) {
-                if (!$account->active) {
-                    $account->active = true;
-                    $account->save();
-                    $account->notify('Account restored');
-                }
-            } else {
-                return response()->json(['message' => 'Account is not found'], 400);
-            }
-        } else {
-            throw new \InvalidArgumentException('Wrong parameters');
-        }
-
-        return response()->json(['success' => true]);
+        $dto = new AccountDTO($request->all());
+        return response()->json(
+            $this->repository->create($dto)->toArray()
+        );
     }
 
-    public function deactivate($type, $id)
+    public function activate($search_field, $search_value): ApiSuccessResponse|ApiErrorResponse
     {
-        if (($type == 'phone' || $type == 'card' || $type == 'email') && $id != '') {
-            if ($account = LoyaltyAccount::where($type, '=', $id)->first()) {
-                if ($account->active) {
-                    $account->active = false;
-                    $account->save();
-                    $account->notify('Account banned');
-                }
-            } else {
-                return response()->json(['message' => 'Account is not found'], 400);
-            }
-        } else {
-            throw new \InvalidArgumentException('Wrong parameters');
+        try {
+            $this->repository->activate($search_field, $search_value);
+        } catch (\InvalidArgumentException|ModelNotFoundException $e) {
+            return ApiErrorResponse::make($e->getMessage());
+        } catch (\Exception) {
+            return ApiErrorResponse::make(__('Server error'));
         }
 
-        return response()->json(['success' => true]);
+        return ApiSuccessResponse::make();
     }
 
-    public function balance($type, $id)
+    public function deactivate($search_field, $search_value): ApiSuccessResponse|ApiErrorResponse
     {
-        if (($type == 'phone' || $type == 'card' || $type == 'email') && $id != '') {
-            if ($account = LoyaltyAccount::where($type, '=', $id)->first()) {
-                return response()->json(['balance' => $account->getBalance()], 400);
-
-            } else {
-                return response()->json(['message' => 'Account is not found'], 400);
-            }
-        } else {
-            throw new \InvalidArgumentException('Wrong parameters');
+        try {
+            $this->repository->deactivate($search_field, $search_value);
+        } catch (\InvalidArgumentException|ModelNotFoundException $e) {
+            return ApiErrorResponse::make($e->getMessage());
+        } catch (\Exception) {
+            return ApiErrorResponse::make(__('Server error'));
         }
+
+        return ApiSuccessResponse::make();
+    }
+
+    public function balance($search_field, $search_value): \Illuminate\Http\JsonResponse|ApiErrorResponse
+    {
+        try {
+            $balance = $this->repository->balance($search_field, $search_value);
+        } catch (\InvalidArgumentException|ModelNotFoundException $e) {
+            return ApiErrorResponse::make($e->getMessage());
+        } catch (\Exception) {
+            return ApiErrorResponse::make(__('Server error'));
+        }
+
+        return response()->json([ 'balance' => round($balance, 2) ]);
     }
 }
