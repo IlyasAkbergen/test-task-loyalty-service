@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use InvalidArgumentException;
 use Spatie\DataTransferObject\Exceptions\UnknownProperties;
 
-class AccountRepositoryEloquentEloquent extends BaseRepositoryEloquent implements AccountRepository
+class AccountRepositoryEloquent extends BaseRepositoryEloquent implements AccountRepository
 {
     public function __construct(LoyaltyAccount $model) {
         $this->model = $model;
