@@ -24,7 +24,7 @@ class DepositRequest extends FormRequest
     public function rules()
     {
         return [
-            // не еверен, можно ли менять нейминги полей, зависит от разных обстоятельств, так-что решил оставить
+            // не уверен, можно ли менять нейминги полей, зависит от разных обстоятельств, так-что решил оставить
             'account_type' => [ 'required', 'in:phone,card,email' ],
             'account_id'   => [ 'required', 'string' ],
             'loyalty_points_rule_id' => [ 'required', 'numeric', 'exists:loyalty_points_rule,id' ],
